@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#141519"/>
+  <line x1="8" y1="14" x2="56" y2="14" stroke="#666c73" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="8" y1="50" x2="56" y2="50" stroke="#666c73" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="28" y1="14" x2="28" y2="19" stroke="#ff4250" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="28" y1="50" x2="28" y2="45" stroke="#ff4250" stroke-width="2.2" stroke-linecap="round"/>
+  <text x="32" y="38" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-weight="700" font-size="24" text-anchor="middle" letter-spacing="1.5">
+    <tspan fill="#f2f2f5">f</tspan><tspan fill="#ff4250">a</tspan><tspan fill="#f2f2f5">st</tspan>
+  </text>
+</svg>

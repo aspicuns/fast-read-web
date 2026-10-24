@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>fast-read</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#141519">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="fast-read">
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Top Navigation Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <button id="btn-drawer" class="btn-icon" aria-label="Kütüphane & Menü">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+      </div>
+      
+      <div id="top-book-title" class="top-bar-title" title="Kitap başlığı">fast-read</div>
+      
+      <div class="top-bar-right">
+        <button id="btn-theme" class="btn-icon" aria-label="Tema Değiştir">
+          <svg id="theme-icon-sun" viewBox="0 0 24 24" style="display:none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button id="btn-fullscreen" class="btn-icon" aria-label="Tam Ekran">
+          <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Center Reading Viewport -->
+    <main id="reading-viewport" class="reading-viewport" role="region" aria-label="Okuma Alanı">
+      <div class="reticle-box">
+        <div class="reticle-line reticle-line-top"></div>
+        <div class="reticle-notch reticle-notch-top"></div>
+        
+        <div id="word-display" class="word-container">
+          <span id="word-left" class="word-left">f</span>
+          <span id="word-orp" class="word-orp">a</span>
+          <span id="word-right" class="word-right">st</span>
+        </div>
+        
+        <div id="countdown-display" class="countdown-overlay" style="display: none;">3</div>
+        
+        <div class="reticle-notch reticle-notch-bottom"></div>
+        <div class="reticle-line reticle-line-bottom"></div>
+      </div>
+      
+      <div id="reading-hint" class="reading-hint">Dokunarak veya boşlukla başlat</div>
+    </main>
+
+    <!-- Bottom Progress & Controls -->
+    <footer class="bottom-container">
+      <div id="progress-bar-wrap" class="progress-bar-wrap" role="slider" aria-label="İlerleme Çubuğu">
+        <div class="progress-track">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+      </div>
+      
+      <div class="bottom-toolbar">
+        <div id="bottom-info-left" class="bottom-info-left">0 / 0 kelime · %0</div>
+        
+        <div class="bottom-controls-center">
+          <!-- Order: v < || > ^ (matches desktop) -->
+          <button id="btn-wpm-down" class="btn-ctrl" title="Hız Azalt (-25 WPM)" aria-label="Hız Azalt">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          
+          <button id="btn-seek-back" class="btn-ctrl" title="10 Kelime Geri" aria-label="10 Kelime Geri">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          
+          <button id="btn-play" class="btn-ctrl btn-play" title="Başlat / Duraklat" aria-label="Başlat / Duraklat">
+            <svg id="icon-play" viewBox="0 0 24 24" style="fill: currentColor; stroke: none;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><line x1="6" y1="4" x2="6" y2="20"></line><line x1="18" y1="4" x2="18" y2="20"></line></svg>
+          </button>
+          
+          <button id="btn-seek-fwd" class="btn-ctrl" title="10 Kelime İleri" aria-label="10 Kelime İleri">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+          
+          <button id="btn-wpm-up" class="btn-ctrl" title="Hız Arttır (+25 WPM)" aria-label="Hız Arttır">
+            <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+          </button>
+        </div>
+        
+        <div id="bottom-info-right" class="bottom-info-right">300 WPM</div>
+      </div>
+    </footer>
+
+    <!-- Drawer (Sidebar Modal) -->
+    <div id="drawer-backdrop" class="drawer-backdrop"></div>
+    <aside id="drawer" class="drawer" aria-label="Yan Menü">
+      <div class="drawer-header">
+        <div class="drawer-title">f<span class="accent-letter">a</span>st-read</div>
+        <button id="btn-close-drawer" class="btn-icon" aria-label="Kapat">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      
+      <div class="drawer-tabs">
+        <button id="tab-btn-books" class="tab-btn active">Kitaplarım</button>
+        <button id="tab-btn-add" class="tab-btn">Metin Ekle</button>
+        <button id="tab-btn-settings" class="tab-btn">Ayarlar</button>
+      </div>
+      
+      <!-- Tab 1: Book List -->
+      <div id="tab-content-books" class="tab-content">
+        <div id="book-list-container"></div>
+      </div>
+      
+      <!-- Tab 2: Add Text -->
+      <div id="tab-content-add" class="tab-content" style="display: none;">
+        <div class="add-section">
+          <input type="text" id="add-title" class="add-title-input" placeholder="Başlık (isteğe bağlı)..." maxlength="60">
+          <textarea id="add-text" class="add-textarea" placeholder="Okumak istediğin metni buraya yapıştır..."></textarea>
+          
+          <input type="file" id="file-picker" accept=".txt" style="display: none;">
+          
+          <div class="add-btn-group">
+            <button id="btn-clipboard" class="btn-action">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+              Panodan Al
+            </button>
+            <button id="btn-pick-file" class="btn-action">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              Dosya Seç
+            </button>
+          </div>
+          
+          <button id="btn-save-text" class="btn-action primary">Ekle ve Oku</button>
+        </div>
+      </div>
+      
+      <!-- Tab 3: Settings -->
+      <div id="tab-content-settings" class="tab-content" style="display: none;">
+        <div class="setting-row">
+          <div class="setting-row-header">
+            <span>Okuma Hızı</span>
+            <span id="val-wpm" class="setting-val">300 WPM</span>
+          </div>
+          <input type="range" id="setting-wpm" class="slider" min="100" max="1000" step="25" value="300">
+        </div>
+        
+        <div class="setting-row">
+          <div class="setting-row-header">
+            <span>Yazı Boyutu</span>
+            <span id="val-font" class="setting-val">34 px</span>
+          </div>
+          <input type="range" id="setting-font" class="slider" min="20" max="56" step="2" value="34">
+        </div>
+        
+        <div class="setting-row" style="flex-direction: row; justify-content: space-between; align-items: center;">
+          <span>Başlamadan Geri Sayım (3·2·1)</span>
+          <label class="switch">
+            <input type="checkbox" id="setting-countdown" checked>
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-row" style="flex-direction: row; justify-content: space-between; align-items: center;">
+          <span>Duraklatınca 3 Kelime Geri Sar</span>
+          <label class="switch">
+            <input type="checkbox" id="setting-rewind" checked>
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-row" style="margin-top: 14px; border-bottom: none;">
+          <button id="btn-clear-data" class="btn-action" style="color: var(--accent);">Tüm Verileri Sıfırla</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Floating Toast Notification -->
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
