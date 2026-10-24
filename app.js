@@ -444,22 +444,36 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
         this.dom.wordLeft.textContent = '';
         this.dom.wordOrp.textContent = '';
         this.dom.wordRight.textContent = '';
+        this.dom.wordDisplay.style.transform = '';
         return;
       }
 
+      let orpIdx = 0;
+      let totalLen = 0;
+
       if (!HAS_SURROGATE_REGEX.test(text)) {
-        const orpIdx = Math.max(0, Math.min(orp, text.length - 1));
+        totalLen = text.length;
+        orpIdx = Math.max(0, Math.min(orp, totalLen - 1));
         this.dom.wordLeft.textContent = text.slice(0, orpIdx);
         this.dom.wordOrp.textContent = text[orpIdx] || '';
         this.dom.wordRight.textContent = text.slice(orpIdx + 1);
-        return;
+      } else {
+        const chars = getGraphemes(text);
+        totalLen = chars.length;
+        orpIdx = Math.max(0, Math.min(orp, totalLen - 1));
+        this.dom.wordLeft.textContent = chars.slice(0, orpIdx).join('');
+        this.dom.wordOrp.textContent = chars[orpIdx] || '';
+        this.dom.wordRight.textContent = chars.slice(orpIdx + 1).join('');
       }
 
-      const chars = getGraphemes(text);
-      const orpIdx = Math.max(0, Math.min(orp, chars.length - 1));
-      this.dom.wordLeft.textContent = chars.slice(0, orpIdx).join('');
-      this.dom.wordOrp.textContent = chars[orpIdx] || '';
-      this.dom.wordRight.textContent = chars.slice(orpIdx + 1).join('');
+      // Auto-fit long words on narrow screens so they never clip or shift
+      const maxSideChars = Math.max(orpIdx, (totalLen - 1) - orpIdx);
+      if (maxSideChars > 7) {
+        const scale = Math.max(0.62, 7.5 / maxSideChars);
+        this.dom.wordDisplay.style.transform = `scale(${scale.toFixed(3)})`;
+      } else {
+        this.dom.wordDisplay.style.transform = '';
+      }
     }
 
     updateDisplay() {
@@ -834,6 +848,13 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
         touchStartY = e.touches[0].clientY;
         touchStartTime = Date.now();
       }, { passive: true });
+
+      // Prevent browser rubber-banding and page slide on touch gestures
+      this.dom.readingViewport.addEventListener('touchmove', (e) => {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      }, { passive: false });
 
       this.dom.readingViewport.addEventListener('touchend', (e) => {
         if (!e.changedTouches || e.changedTouches.length === 0) return;

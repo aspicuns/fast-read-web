@@ -1,5 +1,5 @@
 // fast-read Service Worker - Offline Cache
-const CACHE_NAME = 'fast-read-v1.1.0';
+const CACHE_NAME = 'fast-read-v1.2.0';
 
 const ASSETS_TO_CACHE = [
   './',

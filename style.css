@@ -13,8 +13,8 @@
   --input: #121316;
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, "Courier New", monospace;
-  --reticle-w: clamp(280px, 85vw, 460px);
-  --word-size: clamp(26px, 7vw, 42px);
+  --reticle-w: clamp(280px, 92vw, 500px);
+  --word-size: clamp(24px, 6.8vw, 42px);
 }
 
 [data-theme="light"] {
@@ -44,6 +44,9 @@ html, body {
   height: 100dvh;
   min-height: 100dvh;
   overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overscroll-behavior: none;
+  touch-action: none;
   background-color: var(--bg);
   color: var(--fg);
   font-family: var(--font-ui);
@@ -60,6 +63,9 @@ html, body {
   height: 100%;
   height: 100dvh;
   min-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overscroll-behavior: none;
   position: relative;
   padding-top: max(8px, env(safe-area-inset-top));
   padding-bottom: max(6px, env(safe-area-inset-bottom));
@@ -192,38 +198,48 @@ html, body {
   bottom: 10px;
 }
 
-/* Three-column exact ORP Centering */
+/* Three-column exact ORP Centering (Mathematically locked grid) */
 .word-container {
-  display: flex;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  justify-items: center;
   width: 100%;
   font-family: var(--font-mono);
   font-size: var(--word-size);
   font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
+  line-height: 1;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  transform-origin: 50% 50%;
+  transition: transform 0.04s ease-out;
 }
 
 .word-left {
-  flex: 1 1 0%;
+  width: 100%;
   text-align: right;
   color: var(--fg);
   white-space: pre;
+  overflow: visible;
+  line-height: 1;
 }
 
 .word-orp {
-  flex: 0 0 auto;
   text-align: center;
   color: var(--accent);
   font-weight: 600;
   white-space: pre;
+  line-height: 1;
+  padding: 0 0.5px;
 }
 
 .word-right {
-  flex: 1 1 0%;
+  width: 100%;
   text-align: left;
   color: var(--fg);
   white-space: pre;
+  overflow: visible;
+  line-height: 1;
 }
 
 /* Countdown & Hints */
@@ -458,6 +474,9 @@ html, body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding-right: 2px;
   display: flex;
   flex-direction: column;
