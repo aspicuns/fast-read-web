@@ -7,7 +7,7 @@
   'use strict';
 
   // --- Constants & Config ---
-  const APP_VERSION = 'v1.2.1';
+  const APP_VERSION = 'v1.2.2';
 
   const DEFAULT_SETTINGS = {
     theme: 'dark',
@@ -473,13 +473,13 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
         this.dom.wordRight.textContent = chars.slice(orpIdx + 1).join('');
       }
 
-      // Auto-fit long words on narrow screens so they never clip or shift
+      // Auto-fit long words on narrow screens so they never clip or exceed screen margins
       const maxSideChars = Math.max(orpIdx, (totalLen - 1) - orpIdx);
-      if (maxSideChars > 7) {
-        const scale = Math.max(0.62, 7.5 / maxSideChars);
+      if (maxSideChars > 8) {
+        const scale = Math.max(0.65, 8 / maxSideChars);
         this.dom.wordDisplay.style.transform = `scale(${scale.toFixed(3)})`;
       } else {
-        this.dom.wordDisplay.style.transform = '';
+        this.dom.wordDisplay.style.transform = 'none';
       }
     }
 

@@ -155,10 +155,12 @@ html, body {
 .reticle-box {
   position: relative;
   width: var(--reticle-w);
+  max-width: calc(100vw - 20px);
   height: clamp(100px, 20vh, 140px);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: visible;
 }
 
 /* Reticle Lines */
@@ -188,6 +190,7 @@ html, body {
   background-color: var(--accent);
   transform: translateX(-50%);
   border-radius: 1px;
+  z-index: 5;
 }
 
 .reticle-notch-top {
@@ -198,13 +201,14 @@ html, body {
   bottom: 10px;
 }
 
-/* Three-column exact ORP Centering (Mathematically locked grid) */
+/* Absolute 50% Center Anchor for ORP (Zero deviation on any screen/word) */
 .word-container {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  justify-items: center;
+  position: relative;
   width: 100%;
+  height: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-mono);
   font-size: var(--word-size);
   font-weight: 500;
@@ -212,33 +216,42 @@ html, body {
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   transform-origin: 50% 50%;
-  transition: transform 0.04s ease-out;
+  transition: none !important;
+  pointer-events: none;
 }
 
 .word-left {
-  width: 100%;
+  position: absolute;
+  right: calc(50% + 0.5ch);
+  top: 50%;
+  transform: translateY(-50%);
   text-align: right;
   color: var(--fg);
   white-space: pre;
-  overflow: visible;
   line-height: 1;
 }
 
 .word-orp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   text-align: center;
   color: var(--accent);
   font-weight: 600;
   white-space: pre;
   line-height: 1;
-  padding: 0 0.5px;
+  z-index: 2;
 }
 
 .word-right {
-  width: 100%;
+  position: absolute;
+  left: calc(50% + 0.5ch);
+  top: 50%;
+  transform: translateY(-50%);
   text-align: left;
   color: var(--fg);
   white-space: pre;
-  overflow: visible;
   line-height: 1;
 }
 
