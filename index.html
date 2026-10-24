@@ -31,6 +31,12 @@
       <div id="top-book-title" class="top-bar-title" title="Kitap başlığı">fast-read</div>
       
       <div class="top-bar-right">
+        <button id="btn-text-viewer" class="btn-icon" aria-label="Metin Gezgini" title="Metin Gezgini & Paragraflar (G)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </button>
         <button id="btn-theme" class="btn-icon" aria-label="Tema Değiştir">
           <svg id="theme-icon-sun" viewBox="0 0 24 24" style="display:none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
           <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -117,18 +123,47 @@
         <button id="tab-btn-settings" class="tab-btn">Ayarlar</button>
       </div>
       
-      <!-- Tab 1: Book List -->
+      <!-- Tab 1: Book List & Reading Journal -->
       <div id="tab-content-books" class="tab-content">
-        <div id="book-list-container"></div>
+        <div class="sub-tab-group">
+          <button id="subtab-btn-loaded" class="subtab-btn active">Kütüphane</button>
+          <button id="subtab-btn-toread" class="subtab-btn">Okuyacaklarım</button>
+          <button id="subtab-btn-finished" class="subtab-btn">Okuduklarım</button>
+        </div>
+
+        <!-- Subtab 1: Loaded Books (Active texts for RSVP reading) -->
+        <div id="subtab-content-loaded" class="subtab-content">
+          <div id="book-list-container"></div>
+        </div>
+
+        <!-- Subtab 2: To-Read List (Okuma Listem) -->
+        <div id="subtab-content-toread" class="subtab-content" style="display: none;">
+          <div class="journal-add-box">
+            <input type="text" id="toread-title" class="add-title-input" placeholder="Okunacak Kitap Adı..." maxlength="70">
+            <textarea id="toread-note" class="journal-textarea" placeholder="İsteğe bağlı not (örn: Ahmet tavsiye etti, polisiye)..."></textarea>
+            <button id="btn-add-toread" class="btn-action primary" style="margin-top: 4px;">+ Listeye Ekle</button>
+          </div>
+          <div id="toread-list-container" class="journal-list-container"></div>
+        </div>
+
+        <!-- Subtab 3: Finished / Archive (Okuduklarım & Kişisel Notlar) -->
+        <div id="subtab-content-finished" class="subtab-content" style="display: none;">
+          <div class="journal-add-box">
+            <input type="text" id="finished-title" class="add-title-input" placeholder="Okunan Kitap Adı..." maxlength="70">
+            <textarea id="finished-note" class="journal-textarea" placeholder="Kişisel not veya tarih (örn: 24 Ekim 2026'da bitti, harika son)..."></textarea>
+            <button id="btn-add-finished" class="btn-action primary" style="margin-top: 4px;">+ Arşive Ekle</button>
+          </div>
+          <div id="finished-list-container" class="journal-list-container"></div>
+        </div>
       </div>
       
       <!-- Tab 2: Add Text -->
       <div id="tab-content-add" class="tab-content" style="display: none;">
-        <div class="add-section">
+        <div id="add-form-section" class="add-section">
           <input type="text" id="add-title" class="add-title-input" placeholder="Başlık (isteğe bağlı)..." maxlength="60">
-          <textarea id="add-text" class="add-textarea" placeholder="Okumak istediğin metni buraya yapıştır..."></textarea>
+          <textarea id="add-text" class="add-textarea" placeholder="Okumak istediğin metni buraya yapıştır veya EPUB/TXT dosyası seç..."></textarea>
           
-          <input type="file" id="file-picker" accept=".txt" style="display: none;">
+          <input type="file" id="file-picker" accept=".txt,.epub" style="display: none;">
           
           <div class="add-btn-group">
             <button id="btn-clipboard" class="btn-action">
@@ -137,11 +172,50 @@
             </button>
             <button id="btn-pick-file" class="btn-action">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              Dosya Seç
+              EPUB / TXT Seç
             </button>
           </div>
           
           <button id="btn-save-text" class="btn-action primary">Ekle ve Oku</button>
+        </div>
+
+        <!-- EPUB & Text Content Cleaner / Filter Preview -->
+        <div id="import-preview-section" class="import-preview-section" style="display: none;">
+          <div class="import-preview-header">
+            <div class="import-preview-title">İçerik Filtreleme & Kırpma</div>
+            <button id="btn-cancel-import" class="btn-mini" title="İptal">×</button>
+          </div>
+          <div class="import-book-meta">
+            <input type="text" id="import-title-input" class="add-title-input" style="font-weight: 600;" placeholder="Kitap Başlığı">
+            <div id="import-book-stats" class="import-book-stats"></div>
+          </div>
+          
+          <div class="import-presets">
+            <button id="preset-main" class="preset-btn active">Ana Metin (Önerilen)</button>
+            <button id="preset-preface" class="preset-btn">+ Önsöz Dahil</button>
+            <button id="preset-all" class="preset-btn">Tümünü Seç</button>
+          </div>
+          
+          <div id="import-section-list" class="import-section-list"></div>
+          
+          <div class="clean-rules-group">
+            <label class="clean-rule-item">
+              <input type="checkbox" id="clean-rule-hyphen" checked>
+              <span>Satır sonu tirelerini birleştir</span>
+            </label>
+            <label class="clean-rule-item">
+              <input type="checkbox" id="clean-rule-footnotes" checked>
+              <span>Dipnot işaretlerini temizle ([1], *)</span>
+            </label>
+            <label class="clean-rule-item">
+              <input type="checkbox" id="clean-rule-pages" checked>
+              <span>Sayfa numaralarını temizle</span>
+            </label>
+          </div>
+          
+          <button id="btn-confirm-import" class="btn-action primary" style="margin-top: 10px;">
+            Temizle, Ekle ve Başlat
+          </button>
         </div>
       </div>
       
@@ -184,10 +258,45 @@
         </div>
         
         <div class="settings-version-footer">
-          <span>fast-read <span id="app-version">v1.2.2</span></span>
+          <span>fast-read <span id="app-version">v1.3.0</span></span>
         </div>
       </div>
     </aside>
+
+    <!-- Text / Paragraph Explorer Modal -->
+    <div id="text-viewer-backdrop" class="modal-backdrop" style="display: none;"></div>
+    <div id="text-viewer-modal" class="text-viewer-modal" style="display: none;" role="dialog" aria-modal="true" aria-label="Metin Gezgini">
+      <div class="text-viewer-header">
+        <div class="text-viewer-header-left">
+          <div class="text-viewer-title">Metin Gezgini & Paragraflar</div>
+          <span id="text-viewer-book-title" class="text-viewer-book-title"></span>
+        </div>
+        <button id="btn-close-text-viewer" class="btn-icon" aria-label="Kapat">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="text-viewer-search-bar">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" style="color: var(--muted);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="text-viewer-search" class="text-viewer-search-input" placeholder="Metinde ara...">
+        <button id="btn-clear-search" class="btn-mini" style="display: none; min-width: 28px; min-height: 28px; padding: 2px;" title="Aramayı Temizle">×</button>
+      </div>
+
+      <div id="text-viewer-content" class="text-viewer-content">
+        <!-- Paragraph items dynamically injected here -->
+      </div>
+
+      <div id="text-viewer-action-bar" class="text-viewer-action-bar" style="display: none;">
+        <div class="text-viewer-action-info">
+          <span id="action-para-indicator">Seçili Paragraf: #1</span>
+        </div>
+        <div class="text-viewer-action-btns">
+          <button id="btn-jump-here" class="btn-action primary">▶ Buradan Oku</button>
+          <button id="btn-delete-para" class="btn-action" style="color: var(--accent); border-color: rgba(255, 66, 80, 0.4);" title="Yalnızca seçilen bu paragrafı kitaptan siler">🗑 Bu Parçayı Sil</button>
+          <button id="btn-trim-before" class="btn-action" style="color: var(--accent); border-color: rgba(255, 66, 80, 0.4);" title="Seçilen paragraftan önceki tüm giriş veya yazar biyografisi metnini kalıcı olarak siler">✂ Öncesini Kırp</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Floating Toast Notification -->
     <div id="toast" class="toast"></div>
