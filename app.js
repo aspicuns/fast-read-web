@@ -29,9 +29,30 @@ Kontroller çok basit:
 
 Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İyi okumalar!`;
 
+  // --- Grapheme & Unicode Helpers ---
+  const HAS_SURROGATE_REGEX = /[\uD800-\uDFFF]/;
+  let cachedSegmenter = null;
+
+  function getGraphemes(text) {
+    if (!text || typeof text !== 'string') return [];
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      if (!cachedSegmenter) {
+        cachedSegmenter = new Intl.Segmenter('tr', { granularity: 'grapheme' });
+      }
+      return Array.from(cachedSegmenter.segment(text), s => s.segment);
+    }
+    return Array.from(text);
+  }
+
+  function getWordLength(word) {
+    if (!word) return 0;
+    if (!HAS_SURROGATE_REGEX.test(word)) return word.length;
+    return getGraphemes(word).length;
+  }
+
   // --- ORP Calculation ---
   function getOrpIndex(word) {
-    const len = word.length;
+    const len = getWordLength(word);
     if (len <= 1) return 0;
     if (len <= 5) return 1;
     if (len <= 9) return 2;
@@ -63,11 +84,12 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
       .split(/\s+/)
       .filter(w => w.length > 0)
       .map(word => {
+        const chars = getGraphemes(word);
         const orp = getOrpIndex(word);
         const multiplier = getWordMultiplier(word);
         return {
           text: word,
-          orp: Math.min(orp, word.length - 1),
+          orp: Math.min(orp, Math.max(0, chars.length - 1)),
           multiplier: multiplier
         };
       });
@@ -107,7 +129,12 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
     getSettings() {
       try {
         const data = localStorage.getItem('fast_read_settings');
-        return data ? { ...DEFAULT_SETTINGS, ...JSON.parse(data) } : { ...DEFAULT_SETTINGS };
+        if (!data) return { ...DEFAULT_SETTINGS };
+        const parsed = JSON.parse(data);
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          return { ...DEFAULT_SETTINGS };
+        }
+        return { ...DEFAULT_SETTINGS, ...parsed };
       } catch (e) {
         return { ...DEFAULT_SETTINGS };
       }
@@ -115,12 +142,17 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
     saveSettings(settings) {
       try {
         localStorage.setItem('fast_read_settings', JSON.stringify(settings));
-      } catch (e) {}
+        return true;
+      } catch (e) {
+        return false;
+      }
     },
     getBooks() {
       try {
         const data = localStorage.getItem('fast_read_books');
-        return data ? JSON.parse(data) : [];
+        if (!data) return [];
+        const parsed = JSON.parse(data);
+        return Array.isArray(parsed) ? parsed : [];
       } catch (e) {
         return [];
       }
@@ -128,7 +160,11 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
     saveBooks(books) {
       try {
         localStorage.setItem('fast_read_books', JSON.stringify(books));
-      } catch (e) {}
+        return true;
+      } catch (e) {
+        console.warn('[fast-read] LocalStorage saveBooks failed:', e);
+        return false;
+      }
     }
   };
 
@@ -275,7 +311,7 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
     // --- Reader Engine Controls ---
     play() {
       if (this.tokens.length === 0) return;
-      if (this.isPlaying) return;
+      if (this.isPlaying || this.countdownValue > 0) return;
 
       if (this.currentIndex >= this.tokens.length - 1) {
         this.currentIndex = 0;
@@ -396,6 +432,7 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
       this.dom.settingWpm.value = clamped;
       this.dom.valWpm.textContent = `${clamped} WPM`;
       this.dom.bottomInfoRight.textContent = `${clamped} WPM`;
+      this.updateProgressUi();
 
       if (showNotification) {
         this.showToast(`${clamped} WPM`);
@@ -410,10 +447,19 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
         return;
       }
 
-      const orpIdx = Math.max(0, Math.min(orp, text.length - 1));
-      this.dom.wordLeft.textContent = text.slice(0, orpIdx);
-      this.dom.wordOrp.textContent = text[orpIdx];
-      this.dom.wordRight.textContent = text.slice(orpIdx + 1);
+      if (!HAS_SURROGATE_REGEX.test(text)) {
+        const orpIdx = Math.max(0, Math.min(orp, text.length - 1));
+        this.dom.wordLeft.textContent = text.slice(0, orpIdx);
+        this.dom.wordOrp.textContent = text[orpIdx] || '';
+        this.dom.wordRight.textContent = text.slice(orpIdx + 1);
+        return;
+      }
+
+      const chars = getGraphemes(text);
+      const orpIdx = Math.max(0, Math.min(orp, chars.length - 1));
+      this.dom.wordLeft.textContent = chars.slice(0, orpIdx).join('');
+      this.dom.wordOrp.textContent = chars[orpIdx] || '';
+      this.dom.wordRight.textContent = chars.slice(orpIdx + 1).join('');
     }
 
     updateDisplay() {
@@ -628,13 +674,17 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
       };
 
       this.books.unshift(newBook);
-      Storage.saveBooks(this.books);
+      const saved = Storage.saveBooks(this.books);
 
       this.dom.addTitle.value = '';
       this.dom.addText.value = '';
       this.loadBook(newBook.id);
       this.toggleDrawer(false);
-      this.showToast('Metin eklendi!');
+      if (!saved) {
+        this.showToast('Uyarı: Hafıza dolu, metin kalıcı kaydedilemedi!');
+      } else {
+        this.showToast('Metin eklendi!');
+      }
     }
 
     // --- Touch & Keyboard Event Bindings ---
@@ -776,14 +826,18 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
       let touchStartX = 0;
       let touchStartY = 0;
       let touchStartTime = 0;
+      let lastTouchEndTime = 0;
 
       this.dom.readingViewport.addEventListener('touchstart', (e) => {
+        if (!e.touches || e.touches.length === 0) return;
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
         touchStartTime = Date.now();
       }, { passive: true });
 
       this.dom.readingViewport.addEventListener('touchend', (e) => {
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+        lastTouchEndTime = Date.now();
         const touchEndX = e.changedTouches[0].clientX;
         const touchEndY = e.changedTouches[0].clientY;
         const diffX = touchEndX - touchStartX;
@@ -810,24 +864,34 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
           return;
         }
 
-        // Otherwise simple tap: Toggle play/pause
-        if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+        // Tap gesture: responsive threshold (< 25px move and < 400ms)
+        if (diffTime < 400 && Math.abs(diffX) < 25 && Math.abs(diffY) < 25) {
           this.togglePlay();
         }
       }, { passive: true });
 
       // Mouse click on desktop reading area
       this.dom.readingViewport.addEventListener('click', (e) => {
-        // Only if it wasn't a touch event (avoid double firing on touch devices)
-        if (window.matchMedia('(pointer: fine)').matches) {
-          this.togglePlay();
+        // Prevent ghost click after touchend on touchscreen devices / hybrid laptops
+        if (Date.now() - lastTouchEndTime < 450) {
+          return;
         }
+        this.togglePlay();
       });
 
       // Global keyboard shortcuts
       window.addEventListener('keydown', (e) => {
         // If typing in textarea or input, do not capture hotkeys
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+          return;
+        }
+
+        // If drawer is open, only allow Escape to close it; ignore playback hotkeys
+        if (this.dom.drawer.classList.contains('open')) {
+          if (e.code === 'Escape') {
+            e.preventDefault();
+            this.toggleDrawer(false);
+          }
           return;
         }
 
