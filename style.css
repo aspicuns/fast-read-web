@@ -766,6 +766,19 @@ input:checked + .switch-slider:before {
   transform: translateX(-50%) translateY(0);
 }
 
+/* Settings Version Footer */
+.settings-version-footer {
+  margin-top: 22px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  user-select: none;
+  opacity: 0.8;
+}
+
 /* Responsive adjust for mobile */
 @media (max-width: 480px) {
   .top-bar-title {

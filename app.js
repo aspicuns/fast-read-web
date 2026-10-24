@@ -7,6 +7,8 @@
   'use strict';
 
   // --- Constants & Config ---
+  const APP_VERSION = 'v1.2.1';
+
   const DEFAULT_SETTINGS = {
     theme: 'dark',
     wpm: 300,
@@ -243,8 +245,13 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
         btnPlay: document.getElementById('btn-play'),
         iconPlay: document.getElementById('icon-play'),
         iconPause: document.getElementById('icon-pause'),
-        toast: document.getElementById('toast')
+        toast: document.getElementById('toast'),
+        appVersion: document.getElementById('app-version')
       };
+
+      if (this.dom.appVersion) {
+        this.dom.appVersion.textContent = APP_VERSION;
+      }
 
       // Set initial control values
       this.dom.settingWpm.value = this.settings.wpm;
@@ -779,9 +786,15 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
         Storage.saveSettings(this.settings);
       });
 
-      this.dom.btnClearData.addEventListener('click', () => {
-        if (confirm('Tüm kitaplar ve ayarlar sıfırlansın mı?')) {
+      this.dom.btnClearData.addEventListener('click', async () => {
+        if (confirm('Tüm kitaplar, ayarlar ve önbellek sıfırlansın mı?')) {
           localStorage.clear();
+          if ('caches' in window) {
+            try {
+              const keys = await caches.keys();
+              await Promise.all(keys.map(k => caches.delete(k)));
+            } catch (err) {}
+          }
           location.reload();
         }
       });
@@ -954,8 +967,26 @@ Bu uygulama tamamen çevrimdışı çalışır ve internet kotanı tüketmez. İ
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js').then((reg) => {
             console.log('[fast-read] Service Worker registered:', reg.scope);
+
+            // Check for updates immediately and periodically
+            reg.update().catch(() => {});
+
+            document.addEventListener('visibilitychange', () => {
+              if (document.visibilityState === 'visible') {
+                reg.update().catch(() => {});
+              }
+            });
           }).catch((err) => {
             console.log('[fast-read] Service Worker registration failed:', err);
+          });
+
+          // Auto-refresh when new Service Worker takes over
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+              refreshing = true;
+              window.location.reload();
+            }
           });
         });
       }
